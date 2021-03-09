@@ -1,0 +1,44 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: lukas81298 <lukas81298@gommehd.net>
+Date: Tue, 9 Mar 2021 20:32:09 +0100
+Subject: [PATCH] Cheetah POM changes
+
+
+diff --git a/pom.xml b/pom.xml
+index 7712a8723cddb59829a5181f54098d0bb4083f6e..f99c93c8510908e083e34e2c02f460cbff0e81fb 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -3,17 +3,16 @@
+          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+     <modelVersion>4.0.0</modelVersion>
+     <parent>
+-        <groupId>com.destroystokyo.paper</groupId>
+-        <artifactId>paper-parent</artifactId>
++        <groupId>net.gommehd.cheetah</groupId>
++        <artifactId>cheetah-parent</artifactId>
+         <version>dev-SNAPSHOT</version>
+     </parent>
+ 
+-    <groupId>com.destroystokyo.paper</groupId>
+-    <artifactId>paper-mojangapi</artifactId>
+-    <version>1.16.5-R0.1-SNAPSHOT</version>
++    <artifactId>cheetah-mojangapi</artifactId>
++    <version>1.16.5-R1.0.0-SNAPSHOT</version>
+     <packaging>jar</packaging>
+ 
+-    <name>Paper-MojangAPI</name>
++    <name>Cheetah-MojangAPI</name>
+     <url>https://github.com/PaperMC/Paper</url>
+     <description>API additions that utilize Mojang Specific API's</description>
+ 
+@@ -49,8 +48,8 @@
+ 
+     <dependencies>
+         <dependency>
+-            <groupId>com.destroystokyo.paper</groupId>
+-            <artifactId>paper-api</artifactId>
++            <groupId>net.gommehd.cheetah</groupId>
++            <artifactId>cheetah-api</artifactId>
+             <version>${project.version}</version>
+             <scope>provided</scope>
+         </dependency>
