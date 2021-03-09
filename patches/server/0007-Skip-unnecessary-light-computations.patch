@@ -1,0 +1,18 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: lukas81298 <lukas81298@gmail.com>
+Date: Sun, 3 Jan 2021 20:53:09 +0100
+Subject: [PATCH] Skip unnecessary light computations
+
+
+diff --git a/src/main/java/net/minecraft/server/LightEngine.java b/src/main/java/net/minecraft/server/LightEngine.java
+index bca3da5c5d61f6d31aceefbe6d2f59747fa940a8..a0a0f185a3327c60d67e8967cc4609278020f2f7 100644
+--- a/src/main/java/net/minecraft/server/LightEngine.java
++++ b/src/main/java/net/minecraft/server/LightEngine.java
+@@ -100,6 +100,7 @@ public class LightEngine implements ILightEngine {
+ 
+     public int b(BlockPosition blockposition, int i) {
+         int j = this.b == null ? 0 : this.b.b(blockposition) - i;
++        if(j >= 15) { return j; } // Paper - skip subsequent light computation if max light level already has been reached
+         int k = this.a == null ? 0 : this.a.b(blockposition);
+ 
+         return Math.max(k, j);

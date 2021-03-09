@@ -1,0 +1,43 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: lukas81298 <lukas81298@gommehd.net>
+Date: Fri, 22 Jan 2021 21:45:32 +0100
+Subject: [PATCH] Configurable despawn check interval
+
+
+diff --git a/src/main/java/com/destroystokyo/paper/PaperWorldConfig.java b/src/main/java/com/destroystokyo/paper/PaperWorldConfig.java
+index b0bf379f73040f9deec543868972c341143f4ad1..6d85ea5d49c179ff7167ac50236ff742f0fd8b8f 100644
+--- a/src/main/java/com/destroystokyo/paper/PaperWorldConfig.java
++++ b/src/main/java/com/destroystokyo/paper/PaperWorldConfig.java
+@@ -823,5 +823,10 @@ public class PaperWorldConfig {
+ 	public int mapInItemFrameUpdateInterval = 10;
+     private void mapInItemFrameSettings() {
+         mapInItemFrameUpdateInterval = Math.max(1, getInt("map-in-item-frame-update-interval", 10));
++	}
++	
++    public int checkDespawnTickInterval = 1;
++    private void setCheckDespawnTickInterval() {
++        checkDespawnTickInterval = getInt("check-despawn-tick-interval", this.checkDespawnTickInterval);
+     }
+ }
+diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
+index 82cd4b1d9897c9f63778f0f371cb3932795b6604..f8aedda328d2e7292435e26c804bbb2020ec811a 100644
+--- a/src/main/java/net/minecraft/server/WorldServer.java
++++ b/src/main/java/net/minecraft/server/WorldServer.java
+@@ -513,7 +513,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+                 // CraftBukkit end */
+ 
+                 gameprofilerfiller.enter("checkDespawn");
+-                if (!entity.dead) {
++                if (!entity.dead && entity.ticksLived % paperConfig.checkDespawnTickInterval == 0) { // Paper - configurable despawn check interval
+                     entity.checkDespawn();
+                 }
+ 
+@@ -2246,7 +2246,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+     public String F() {
+         return String.format("players: %s, entities: %d [%s], block_entities: %d [%s], block_ticks: %d, fluid_ticks: %d, chunk_source: %s", this.players.size(), this.entitiesById.size(), a(this.entitiesById.values(), (entity) -> { // CraftBukkit - decompile error
+             return IRegistry.ENTITY_TYPE.getKey(entity.getEntityType());
+-        }), this.tileEntityListTick.size(), a(this.tileEntityListTick, (tileentity) -> { // CraftBukkit - decompile error
++        }), this.tileEntityListTick.size(), a(this.tileEntityListTick.asList(), (tileentity) -> { // CraftBukkit - decompile error // Paper
+             return IRegistry.BLOCK_ENTITY_TYPE.getKey(tileentity.getTileType());
+         }), this.getBlockTickList().a(), this.getFluidTickList().a(), this.P());
+     }

@@ -1,0 +1,19 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: lukas81298 <lukas81298@gmail.com>
+Date: Mon, 14 Dec 2020 02:24:41 +0100
+Subject: [PATCH] Expose gameprofileexpository
+
+
+diff --git a/src/main/java/net/minecraft/server/UserCache.java b/src/main/java/net/minecraft/server/UserCache.java
+index 8c3aa47a28914fd69a7f2e55a8c8f91d8e02371e..233a0ee9042b008d756c99740935494d7f103593 100644
+--- a/src/main/java/net/minecraft/server/UserCache.java
++++ b/src/main/java/net/minecraft/server/UserCache.java
+@@ -44,7 +44,7 @@ public class UserCache {
+     private static boolean b;
+     private final Map<String, UserCache.UserCacheEntry> c = Maps.newConcurrentMap();private final Map<String, UserCache.UserCacheEntry> nameCache = c; // Paper - OBFHELPER // Paper
+     private final Map<UUID, UserCache.UserCacheEntry> d = Maps.newConcurrentMap();
+-    private final GameProfileRepository e;
++    public GameProfileRepository e; // Paper private final -> public
+     private final Gson f = (new GsonBuilder()).create();
+     private final File g;
+     private final AtomicLong h = new AtomicLong();

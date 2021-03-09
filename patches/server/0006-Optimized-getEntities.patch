@@ -1,0 +1,134 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: lukas81298 <lukas81298@gmail.com>
+Date: Tue, 29 Dec 2020 23:16:47 +0100
+Subject: [PATCH] Optimized getEntities
+
+
+diff --git a/src/main/java/net/minecraft/server/Chunk.java b/src/main/java/net/minecraft/server/Chunk.java
+index 3bcd63a754538ccfc5965207a8fc79faa31925c0..6eef751b9f9fbdd02f51124b8e290770f17d173b 100644
+--- a/src/main/java/net/minecraft/server/Chunk.java
++++ b/src/main/java/net/minecraft/server/Chunk.java
+@@ -882,7 +882,10 @@ public class Chunk implements IChunkAccess {
+ 
+         i = MathHelper.clamp(i, 0, this.entitySlices.length - 1);
+         j = MathHelper.clamp(j, 0, this.entitySlices.length - 1);
++        addEntitiesToList(entity, axisalignedbb, list, predicate, i, j);
++    }
+ 
++    public void addEntitiesToList(@Nullable Entity entity, AxisAlignedBB axisalignedbb, List<Entity> list, @Nullable Predicate<? super Entity> predicate, int i, int j) { // Paper - take i, j as optional arguments
+         for (int k = i; k <= j; ++k) {
+             List<Entity> entityslice = this.entitySlices[k]; // Spigot
+             List<Entity> list1 = entityslice; // Spigot
+@@ -892,7 +895,7 @@ public class Chunk implements IChunkAccess {
+                 Entity entity1 = (Entity) list1.get(i1);
+                 if (entity1.shouldBeRemoved) continue; // Paper
+ 
+-                if (entity1.getBoundingBox().c(axisalignedbb) && entity1 != entity) {
++                if (entity1 != entity && entity1.getBoundingBox().intersects(axisalignedbb)) { // Paper - swap order and use obfuscation helper
+                     if (predicate == null || predicate.test(entity1)) {
+                         list.add(entity1);
+                     }
+diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
+index 534238688be75c53058dcfeabcdf86d9c0504089..9e6d490817a68e4034050e0fa8e632ab2c28a7ac 100644
+--- a/src/main/java/net/minecraft/server/Entity.java
++++ b/src/main/java/net/minecraft/server/Entity.java
+@@ -1955,10 +1955,12 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+         return EnumInteractionResult.PASS;
+     }
+ 
++    public final boolean canCollideWithEntity(Entity entity) { return j(entity); } // Paper - OBFHELPER (this is not the same as canCollideWith(Entity), which is the original name of this method)
+     public boolean j(Entity entity) {
+         return entity.aZ() && !this.isSameVehicle(entity);
+     }
+ 
++    public final boolean canBeCollidedWith() { return aZ(); } // Paper - OBFHELPER
+     public boolean aZ() {
+         return false;
+     }
+diff --git a/src/main/java/net/minecraft/server/ICollisionAccess.java b/src/main/java/net/minecraft/server/ICollisionAccess.java
+index 25e54a1fadc5d31fb250a3f47524b4f345fc8cc6..718a846a22a958851e5f984b0e68ceb59fb6dc2a 100644
+--- a/src/main/java/net/minecraft/server/ICollisionAccess.java
++++ b/src/main/java/net/minecraft/server/ICollisionAccess.java
+@@ -27,6 +27,7 @@ public interface ICollisionAccess extends IBlockAccess {
+         return this.a(entity, VoxelShapes.a(entity.getBoundingBox()));
+     }
+ 
++    default boolean noCollision(AxisAlignedBB bb) { return b(bb); } // Paper - OBFHELPER
+     default boolean b(AxisAlignedBB axisalignedbb) {
+         return this.b((Entity) null, axisalignedbb, (entity) -> {
+             return true;
+@@ -51,12 +52,16 @@ public interface ICollisionAccess extends IBlockAccess {
+         } finally { if (entity != null) entity.collisionLoadChunks = false; } // Paper
+     }
+ 
++
++    default Stream<VoxelShape> getEntityCollisions(@Nullable Entity entity, AxisAlignedBB axisalignedbb, Predicate<Entity> predicate) { return c(entity, axisalignedbb, predicate); };
+     Stream<VoxelShape> c(@Nullable Entity entity, AxisAlignedBB axisalignedbb, Predicate<Entity> predicate);
+ 
++    default Stream<VoxelShape> getCollisions(@Nullable Entity entity, AxisAlignedBB axisalignedbb, Predicate<Entity> predicate) { return d(entity, axisalignedbb, predicate); } // Paper - OBFHELPER
+     default Stream<VoxelShape> d(@Nullable Entity entity, AxisAlignedBB axisalignedbb, Predicate<Entity> predicate) {
+         return Stream.concat(this.b(entity, axisalignedbb), this.c(entity, axisalignedbb, predicate));
+     }
+ 
++    default Stream<VoxelShape> getBlockCollisions(@Nullable Entity entity, AxisAlignedBB axisalignedbb) { return b(entity, axisalignedbb); } // Paper - OBFHELPER
+     default Stream<VoxelShape> b(@Nullable Entity entity, AxisAlignedBB axisalignedbb) {
+         return StreamSupport.stream(new VoxelShapeSpliterator(this, entity, axisalignedbb), false);
+     }
+diff --git a/src/main/java/net/minecraft/server/IEntityAccess.java b/src/main/java/net/minecraft/server/IEntityAccess.java
+index 2639c17b7f6100533f33124f9e49990cd303d161..670e70b7736f419e18db26cf87131a1a76a2a0a7 100644
+--- a/src/main/java/net/minecraft/server/IEntityAccess.java
++++ b/src/main/java/net/minecraft/server/IEntityAccess.java
+@@ -62,6 +62,8 @@ public interface IEntityAccess {
+             AxisAlignedBB axisalignedbb1 = axisalignedbb.g(1.0E-7D);
+ 
+             return this.getEntities(entity, axisalignedbb1, predicate.and((entity1) -> {
++                // Paper start - bounding box intersection check is redundant - it is already ensured by getEntities(). Furthermore replaced the code with a simplified version
++                /*
+                 boolean flag;
+ 
+                 if (entity1.getBoundingBox().c(axisalignedbb1)) {
+@@ -82,6 +84,13 @@ public interface IEntityAccess {
+ 
+                 flag = false;
+                 return flag;
++                */
++                if (entity == null) {
++                    return entity1.canBeCollidedWith();
++                } else {
++                    return entity.canCollideWithEntity(entity1);
++                }
++                // Paper end
+             })).stream().map(Entity::getBoundingBox).map(VoxelShapes::a);
+         }
+     }
+diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
+index f5ab99156ce5429e63976183cbf115d5340a83a1..b9b770c106af6d16210bd03b05264d7e33dbb549 100644
+--- a/src/main/java/net/minecraft/server/World.java
++++ b/src/main/java/net/minecraft/server/World.java
+@@ -1086,18 +1086,21 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+         int j = MathHelper.floor((axisalignedbb.maxX + 2.0D) / 16.0D);
+         int k = MathHelper.floor((axisalignedbb.minZ - 2.0D) / 16.0D);
+         int l = MathHelper.floor((axisalignedbb.maxZ + 2.0D) / 16.0D);
+-        IChunkProvider ichunkprovider = this.getChunkProvider();
+-
++        //IChunkProvider ichunkprovider = this.getChunkProvider(); // Paper - unused variable
++        // Paper start
++        int fromY = MathHelper.floor((axisalignedbb.minY - 2.0D) / 16.0D);
++        int toY = MathHelper.floor((axisalignedbb.maxY + 2.0D) / 16.0D);
++        fromY = MathHelper.clamp(fromY, 0, 15);
++        toY = MathHelper.clamp(toY, 0, 15);
++        // Paper end
+         for (int i1 = i; i1 <= j; ++i1) {
+             for (int j1 = k; j1 <= l; ++j1) {
+                 Chunk chunk = (Chunk)this.getChunkIfLoadedImmediately(i1, j1); // Paper
+-
+                 if (chunk != null) {
+-                    chunk.a(entity, axisalignedbb, list, predicate);
++                    chunk.addEntitiesToList(entity, axisalignedbb, list, predicate, fromY, toY); // Paper - use own method which takes y indices as well
+                 }
+             }
+         }
+-
+         return list;
+     }
+ 

@@ -1,0 +1,118 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: lukas81298 <lukas81298@gommehd.net>
+Date: Fri, 22 Jan 2021 21:46:40 +0100
+Subject: [PATCH] Use more efficient tile tick lookup
+
+
+diff --git a/src/main/java/com/destroystokyo/paper/util/list/HashDrivenArrayList.java b/src/main/java/com/destroystokyo/paper/util/list/HashDrivenArrayList.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..61115c5452ef7dbc51559dbe2db43499a8f42010
+--- /dev/null
++++ b/src/main/java/com/destroystokyo/paper/util/list/HashDrivenArrayList.java
+@@ -0,0 +1,80 @@
++package com.destroystokyo.paper.util.list;
++
++import java.util.*;
++
++/**
++ * @author Lukas Alt
++ * @since 12.01.2021
++ */
++public class HashDrivenArrayList<T> implements Iterable<T> {
++    private final Set<T> backingSet = new HashSet<>();
++    private final List<T> backingList = new ArrayList<>();
++
++    public List<T> asList() {
++        return this.backingList;
++    }
++
++    public Set<T> asSet() {
++        return this.backingSet;
++    }
++
++    public boolean contains(T t) {
++        return this.backingSet.contains(t);
++    }
++
++    public int size() {
++        return this.backingList.size();
++    }
++
++    public void add(T t) {
++        this.backingList.add(t);
++        this.backingSet.add(t);
++    }
++
++    public boolean addIfNotPresent(T t) {
++        if(this.backingSet.add(t)) {
++            this.backingList.add(t);
++            return true;
++        }
++        return false;
++    }
++
++    public void clear() {
++        this.backingList.clear();
++        this.backingSet.clear();
++    }
++
++    public boolean isEmpty() {
++        return this.backingList.isEmpty();
++    }
++
++    public boolean remove(T t) {
++        if(this.backingSet.remove(t)) {
++            this.backingList.remove(t);
++        }
++        return false;
++    }
++
++    public T remove(int index) {
++        T removed = this.backingList.remove(index);
++        if(removed != null) {
++            this.backingSet.remove(removed);
++        }
++        return removed;
++    }
++
++    public T get(int index) {
++        return this.backingList.get(index);
++    }
++
++    @Override
++    public Iterator<T> iterator() {
++        return this.backingList.iterator();
++    }
++
++    public void removeAll(Set<T> toRemove) {
++        for (T t : toRemove) {
++            remove(t);
++        }
++    }
++}
+diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
+index b9b770c106af6d16210bd03b05264d7e33dbb549..9720053385af2917b15013a21ea9e1635865a612 100644
+--- a/src/main/java/net/minecraft/server/World.java
++++ b/src/main/java/net/minecraft/server/World.java
+@@ -42,7 +42,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+     public static final ResourceKey<World> THE_END = ResourceKey.a(IRegistry.L, new MinecraftKey("the_end"));
+     private static final EnumDirection[] a = EnumDirection.values();
+     //public final List<TileEntity> tileEntityList = Lists.newArrayList(); // Paper - remove unused list
+-    public final List<TileEntity> tileEntityListTick = Lists.newArrayList();
++    public final com.destroystokyo.paper.util.list.HashDrivenArrayList<TileEntity> tileEntityListTick = new com.destroystokyo.paper.util.list.HashDrivenArrayList<>(); // Paper - use combination of set and list
+     protected final List<TileEntity> tileEntityListPending = Lists.newArrayList();
+     protected final java.util.Set<TileEntity> tileEntityListUnload = com.google.common.collect.Sets.newHashSet();
+     public final Thread serverThread;
+diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
+index 954ca045614af10228dda924e1d3005baba3d972..82cd4b1d9897c9f63778f0f371cb3932795b6604 100644
+--- a/src/main/java/net/minecraft/server/WorldServer.java
++++ b/src/main/java/net/minecraft/server/WorldServer.java
+@@ -2251,7 +2251,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+         }), this.getBlockTickList().a(), this.getFluidTickList().a(), this.P());
+     }
+ 
+-    private static <T> String a(Collection<T> collection, Function<T, MinecraftKey> function) {
++    private static <T> String a(Iterable<T> collection, Function<T, MinecraftKey> function) { // Paper - Collection -> Iterable
+         try {
+             Object2IntOpenHashMap<MinecraftKey> object2intopenhashmap = new Object2IntOpenHashMap();
+             Iterator<T> iterator = collection.iterator(); // CraftBukkit - decompile error

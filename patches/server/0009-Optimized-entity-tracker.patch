@@ -1,0 +1,201 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: lukas81298 <lukas81298@gmail.com>
+Date: Mon, 4 Jan 2021 17:25:41 +0100
+Subject: [PATCH] Optimized entity tracker
+
+
+diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
+index 9e6d490817a68e4034050e0fa8e632ab2c28a7ac..6e39f8131577b302ba8ef5e23714931e23f6640b 100644
+--- a/src/main/java/net/minecraft/server/Entity.java
++++ b/src/main/java/net/minecraft/server/Entity.java
+@@ -3109,7 +3109,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+ 
+         for (Iterator iterator = this.passengers.iterator(); iterator.hasNext(); entity.a(flag, set)) { // Paper - do not copy list
+             entity = (Entity) iterator.next();
+-            if (!flag || EntityPlayer.class.isAssignableFrom(entity.getClass())) {
++            if (!flag || entity instanceof EntityPlayer) { // Paper - instanceof check instead of Class.isAssignableFrom(..)
+                 set.add(entity);
+             }
+         }
+diff --git a/src/main/java/net/minecraft/server/EntityTrackerEntry.java b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
+index 6a3a751755cc73b89a9ce890b68dab552c20bf36..5a8d242c0ada7a1d7263188a3db00581c9b06a22 100644
+--- a/src/main/java/net/minecraft/server/EntityTrackerEntry.java
++++ b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
+@@ -84,9 +84,9 @@ public class EntityTrackerEntry {
+         // PAIL : rename
+         if (this.tracker instanceof EntityItemFrame /*&& this.tickCounter % 10 == 0*/) { // CraftBukkit - Moved below, should always enter this block
+             EntityItemFrame entityitemframe = (EntityItemFrame) this.tracker;
+-            ItemStack itemstack = entityitemframe.getItem();
++            ItemStack itemstack; // Paper - do not access item stack when not required
+ 
+-            if (this.tickCounter % this.tracker.world.paperConfig.mapInItemFrameUpdateInterval == 0 && itemstack.getItem() instanceof ItemWorldMap) { // CraftBukkit - Moved this.tickCounter % 10 logic here so item frames do not enter the other blocks, Paper - made update interval configurable
++            if (this.tickCounter % this.tracker.world.paperConfig.mapInItemFrameUpdateInterval == 0 && (itemstack = entityitemframe.getItem()) != null && itemstack.getItem() instanceof ItemWorldMap) { // CraftBukkit - Moved this.tickCounter % 10 logic here so item frames do not enter the other blocks, Paper - made update interval configurable
+                 WorldMap worldmap = ItemWorldMap.getSavedMap(itemstack, this.b);
+                 Iterator iterator = this.trackedPlayers.iterator(); // CraftBukkit
+ 
+@@ -102,7 +102,7 @@ public class EntityTrackerEntry {
+                 }
+             }
+ 
+-            this.c();
++            this.sendDataWatcherChanges(); // this.c(); // Paper - only send data
+         }
+ 
+         if (this.tickCounter % this.d == 0 || this.tracker.impulse || this.tracker.getDataWatcher().a()) {
+@@ -366,12 +366,27 @@ public class EntityTrackerEntry {
+ 
+     }
+ 
++    // Paper start -
++    private void sendDataWatcherChanges() {
++        DataWatcher datawatcher = this.tracker.getDataWatcher();
++
++        if (datawatcher.a()) {
++            this.broadcastIncludingSelf(new PacketPlayOutEntityMetadata(this.tracker.getId(), datawatcher, false));
++        }
++    }
++    // Paper end
++
+     private void c() {
++        // Paper start - moved into own method
++        /*
+         DataWatcher datawatcher = this.tracker.getDataWatcher();
+ 
+         if (datawatcher.a()) {
+             this.broadcastIncludingSelf(new PacketPlayOutEntityMetadata(this.tracker.getId(), datawatcher, false));
+         }
++        */
++        sendDataWatcherChanges();
++        // Paper end
+ 
+         if (this.tracker instanceof EntityLiving) {
+             Set<AttributeModifiable> set = ((EntityLiving) this.tracker).getAttributeMap().getAttributes();
+@@ -383,9 +398,10 @@ public class EntityTrackerEntry {
+                 }
+                 // CraftBukkit end
+                 this.broadcastIncludingSelf(new PacketPlayOutUpdateAttributes(this.tracker.getId(), set));
++                set.clear(); // Paper - moved into if block from below
+             }
+ 
+-            set.clear();
++            //set.clear(); // Paper - moved up
+         }
+ 
+     }
+diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
+index 00d0a5fd7c5d2db19756f3c6cfb2381868af51fd..8817edd24bf8f4db4457539c04cb35cfb2b74595 100644
+--- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
++++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
+@@ -583,7 +583,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+         return d2 * d2 + d3 * d3;
+     }
+ 
+-    private static int b(ChunkCoordIntPair chunkcoordintpair, EntityPlayer entityplayer, boolean flag) {
++    private static int b(int chunkcoordintpair_x, int chunkcoordintpair_z, EntityPlayer entityplayer, boolean flag) { // Paper - take chunk coordinates directly
+         int i;
+         int j;
+ 
+@@ -597,12 +597,13 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+             j = MathHelper.floor(entityplayer.locZ() / 16.0D);
+         }
+ 
+-        return a(chunkcoordintpair, i, j);
++        return a(chunkcoordintpair_x, chunkcoordintpair_z, i, j); // Paper - pass chunk coordinates instead of chunk pos object
+     }
+ 
+-    private static int a(ChunkCoordIntPair chunkcoordintpair, int i, int j) {
+-        int k = chunkcoordintpair.x - i;
+-        int l = chunkcoordintpair.z - j;
++    // Paper start - take chunk coordinates directly
++    private static int a(int chunkcoordintpair_x, int chunkcoordintpair_z, int i, int j) {
++        int k = chunkcoordintpair_x - i;
++        int l = chunkcoordintpair_z - j; // Paper end
+ 
+         return Math.max(Math.abs(k), Math.abs(l));
+     }
+@@ -2305,6 +2306,8 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+         public java.util.Map<EntityPlayer, Boolean> trackedPlayerMap = new java.util.HashMap<>();
+         public Set<EntityPlayer> trackedPlayers = trackedPlayerMap.keySet();
+ 
++        private PlayerChunk playerchunk; // Paper - cache player chunk
++
+         public EntityTracker(Entity entity, int i, int j, boolean flag) {
+             this.trackerEntry = new EntityTrackerEntry(PlayerChunkMap.this.world, entity, j, flag, this::broadcast, trackedPlayerMap); // CraftBukkit // Paper
+             this.tracker = entity;
+@@ -2320,6 +2323,7 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+             this.lastTrackerCandidates = newTrackerCandidates;
+ 
+             if (newTrackerCandidates != null) {
++                int trackingDist = this.computeTrackingRange(); // Paper - cache tracking distance in blocks
+                 Object[] rawData = newTrackerCandidates.getBackingSet();
+                 for (int i = 0, len = rawData.length; i < len; ++i) {
+                     Object raw = rawData[i];
+@@ -2327,7 +2331,7 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+                         continue;
+                     }
+                     EntityPlayer player = (EntityPlayer)raw;
+-                    this.updatePlayer(player);
++                    this.updatePlayer(player, trackingDist); // Paper - pass tracking range
+                 }
+             }
+ 
+@@ -2340,9 +2344,10 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+             // stuff could have been removed, so we need to check the trackedPlayers set
+             // for players that were removed
+ 
++            int trackingDist = this.computeTrackingRange(); // Paper - cache tracking distance in blocks
+             for (EntityPlayer player : this.trackedPlayers.toArray(new EntityPlayer[0])) { // avoid CME
+                 if (newTrackerCandidates == null || !newTrackerCandidates.contains(player)) {
+-                    this.updatePlayer(player);
++                    this.updatePlayer(player, trackingDist); // Paper - pass tracking range
+                 }
+             }
+         }
+@@ -2394,27 +2399,41 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+ 
+         }
+ 
+-        public void updatePlayer(EntityPlayer entityplayer) {
++        // Paper start - fallback method when trackingRange is not specified
++        public final void updatePlayer(EntityPlayer entityPlayer) {
++            this.updatePlayer(entityPlayer, computeTrackingRange());
++            this.playerchunk = null; // Clear cache for fallback calls
++        }
++
++        public final int computeTrackingRange() {
++            return Math.min(this.b(), (PlayerChunkMap.this.viewDistance - 1) * 16);
++        }
++        // Paper end
++
++        public final void updatePlayer(EntityPlayer entityplayer, int trackingRange) { // Paper - add trackingRange
+             org.spigotmc.AsyncCatcher.catchOp("player tracker update"); // Spigot
+             if (entityplayer != this.tracker) {
+                 // Paper start - remove allocation of Vec3D here
+                 //Vec3D vec3d = entityplayer.getPositionVector().d(this.tracker.getPositionVector()); // MC-155077, SPIGOT-5113
+                 double vec3d_dx = entityplayer.locX() - this.tracker.locX();
+-                double vec3d_dy = entityplayer.locY() - this.tracker.locY();
++                // double vec3d_dy = entityplayer.locY() - this.tracker.locY(); // Paper - not required
+                 double vec3d_dz = entityplayer.locZ() - this.tracker.locZ();
+                 // Paper end - remove allocation of Vec3D here
+-                int i = Math.min(this.b(), (PlayerChunkMap.this.viewDistance - 1) * 16);
++                int i = trackingRange; // Paper - do not recompute this value for every player
+                 boolean flag = vec3d_dx >= (double) (-i) && vec3d_dx <= (double) i && vec3d_dz >= (double) (-i) && vec3d_dz <= (double) i && this.tracker.a(entityplayer); // Paper - remove allocation of Vec3D here
+ 
+                 if (flag) {
+                     boolean flag1 = this.tracker.attachedToPlayer;
+ 
+                     if (!flag1) {
+-                        ChunkCoordIntPair chunkcoordintpair = new ChunkCoordIntPair(this.tracker.chunkX, this.tracker.chunkZ);
+-                        PlayerChunk playerchunk = PlayerChunkMap.this.getVisibleChunk(chunkcoordintpair.pair());
++                        // Paper start - cache chunk updates
++                        if(playerchunk == null) {
++                            playerchunk = PlayerChunkMap.this.getVisibleChunk(ChunkCoordIntPair.pair(this.tracker.chunkX, this.tracker.chunkZ));
++                        }
++                        // Paper end
+ 
+                         if (playerchunk != null && playerchunk.getSendingChunk() != null) { // Paper - no-tick view distance
+-                            flag1 = PlayerChunkMap.b(chunkcoordintpair, entityplayer, false) <= PlayerChunkMap.this.viewDistance;
++                            flag1 = PlayerChunkMap.b(this.tracker.chunkX, this.tracker.chunkZ, entityplayer, false) <= PlayerChunkMap.this.viewDistance; // Paper - pass chunk coordinates
+                         }
+                     }
+ 

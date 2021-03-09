@@ -1,0 +1,43 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: lukas81298 <lukas81298@gommehd.net>
+Date: Sun, 24 Jan 2021 18:47:50 +0100
+Subject: [PATCH] Exposed PacketPlayOutEntityMetadata
+
+
+diff --git a/src/main/java/net/minecraft/server/DataWatcher.java b/src/main/java/net/minecraft/server/DataWatcher.java
+index e69093b411f76ea4090789576f8fb6635bd02ca5..20129a03472c383f4d96f6531c5185de71cf8a76 100644
+--- a/src/main/java/net/minecraft/server/DataWatcher.java
++++ b/src/main/java/net/minecraft/server/DataWatcher.java
+@@ -278,6 +278,7 @@ public class DataWatcher {
+             this.c = true;
+         }
+ 
++        public final DataWatcherObject<T> getAccessor() { return this.a; } // Paper - OBFHELPER
+         public DataWatcherObject<T> a() {
+             return this.a;
+         }
+diff --git a/src/main/java/net/minecraft/server/PacketPlayOutEntityMetadata.java b/src/main/java/net/minecraft/server/PacketPlayOutEntityMetadata.java
+index 39f5e73895cf70f1ff1231bdeba986816e579d68..e68f3a9648d258fa6e03d39ec62b928ec23dde75 100644
+--- a/src/main/java/net/minecraft/server/PacketPlayOutEntityMetadata.java
++++ b/src/main/java/net/minecraft/server/PacketPlayOutEntityMetadata.java
+@@ -5,11 +5,18 @@ import java.util.List;
+ 
+ public class PacketPlayOutEntityMetadata implements Packet<PacketListenerPlayOut> {
+ 
+-    private int a;
+-    private List<DataWatcher.Item<?>> b;
++    private int a; public final int getEntityId() { return this.a; } // Paper - OBFHELPER
++    private List<DataWatcher.Item<?>> b; public List<DataWatcher.Item<?>> getMetaDataItems() { return this.b; } // Paper - OBFHELPER
+ 
+     public PacketPlayOutEntityMetadata() {}
+ 
++    // Papert start
++    public PacketPlayOutEntityMetadata(int entityId, List<DataWatcher.Item<?>> items) {
++        this.a = entityId;
++        this.b = items;
++    }
++    // Paper end
++
+     public PacketPlayOutEntityMetadata(int i, DataWatcher datawatcher, boolean flag) {
+         this.a = i;
+         if (flag) {
