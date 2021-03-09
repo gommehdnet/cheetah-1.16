@@ -1,0 +1,68 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: lukas81298 <lukas81298@gommehd.net>
+Date: Tue, 9 Mar 2021 20:23:40 +0100
+Subject: [PATCH] pom changes
+
+
+diff --git a/pom.xml b/pom.xml
+index 9ba379b7e3ee3bc8c6d2c8ec46213c404c73d682..655a724b1fda189413d46309a7b9514681a383e1 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -1,10 +1,10 @@
+ <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+     <modelVersion>4.0.0</modelVersion>
+-    <artifactId>paper</artifactId>
++    <artifactId>cheetah</artifactId>
+     <packaging>jar</packaging>
+     <version>1.16.5-R0.1-SNAPSHOT</version>
+-    <name>Paper</name>
++    <name>Cheetah</name>
+     <url>https://papermc.io</url>
+ 
+     <properties>
+@@ -19,22 +19,22 @@
+     </properties>
+ 
+     <parent>
+-        <groupId>com.destroystokyo.paper</groupId>
+-        <artifactId>paper-parent</artifactId>
++        <groupId>net.gommehd.cheetah</groupId>
++        <artifactId>cheetah-parent</artifactId>
+         <version>dev-SNAPSHOT</version>
+         <relativePath>../pom.xml</relativePath>
+     </parent>
+ 
+     <dependencies>
+         <dependency>
+-            <groupId>com.destroystokyo.paper</groupId>
+-            <artifactId>paper-api</artifactId>
++            <groupId>net.gommehd.cheetah</groupId>
++            <artifactId>cheetah-api</artifactId>
+             <version>${project.version}</version>
+             <scope>compile</scope>
+         </dependency>
+         <dependency>
+-            <groupId>com.destroystokyo.paper</groupId>
+-            <artifactId>paper-mojangapi</artifactId>
++            <groupId>net.gommehd.cheetah</groupId>
++            <artifactId>cheetah-mojangapi</artifactId>
+             <version>${project.version}</version>
+             <scope>compile</scope>
+         </dependency>
+@@ -424,4 +424,15 @@
+             </build>
+         </profile>
+     </profiles>
++
++    <distributionManagement>
++        <repository>
++            <id>gomme-releases</id>
++            <url>https://repo.gomme.dev/nexus/content/repositories/releases/</url>
++        </repository>
++        <snapshotRepository>
++            <id>gomme-snapshots</id>
++            <url>https://repo.gomme.dev/nexus/content/repositories/snapshots/</url>
++        </snapshotRepository>
++    </distributionManagement>
+ </project>

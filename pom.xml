@@ -1,0 +1,30 @@
+<project>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>net.gommehd.cheetah</groupId>
+    <artifactId>cheetah-parent</artifactId>
+    <version>dev-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>GommeHD.net Cheetah (Parent)</name>
+
+    <build>
+        <defaultGoal>install</defaultGoal>
+        <finalName>${project.artifactId}</finalName>
+    </build>
+    <modules>
+        <module>Cheetah-API</module>
+        <module>Cheetah-Server</module>
+        <module>Cheetah-MojangAPI</module>
+    </modules>
+
+    <distributionManagement>
+        <repository>
+            <id>gomme-releases</id>
+            <url>https://repo.gomme.dev/nexus/content/repositories/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>gomme-snapshots</id>
+            <url>https://repo.gomme.dev/nexus/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+</project>

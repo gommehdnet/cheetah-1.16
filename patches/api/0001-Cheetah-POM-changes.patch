@@ -1,0 +1,48 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: lukas81298 <lukas81298@gommehd.net>
+Date: Tue, 9 Mar 2021 20:23:55 +0100
+Subject: [PATCH] Cheetah POM changes
+
+
+diff --git a/pom.xml b/pom.xml
+index ff3894bfa4ddb54b56c28792debaf2218ee3a044..8f00bcc4f21130f4f3e4f56f141989c8a96a06fd 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -3,17 +3,16 @@
+          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+     <modelVersion>4.0.0</modelVersion>
+     <parent>
+-        <groupId>com.destroystokyo.paper</groupId>
+-        <artifactId>paper-parent</artifactId>
++        <groupId>net.gommehd.cheetah</groupId>
++        <artifactId>cheetah-parent</artifactId>
+         <version>dev-SNAPSHOT</version>
+     </parent>
+ 
+-    <groupId>com.destroystokyo.paper</groupId>
+-    <artifactId>paper-api</artifactId>
++    <artifactId>cheetah-api</artifactId>
+     <version>1.16.5-R0.1-SNAPSHOT</version>
+     <packaging>jar</packaging>
+ 
+-    <name>Paper-API</name>
++    <name>Cheetah-API</name>
+     <url>https://github.com/PaperMC/Paper</url>
+     <description>An enhanced plugin API for Minecraft servers.</description>
+ 
+@@ -346,4 +345,15 @@
+             </build>
+         </profile>
+     </profiles>
++
++    <distributionManagement>
++        <repository>
++            <id>gomme-releases</id>
++            <url>https://repo.gomme.dev/nexus/content/repositories/releases/</url>
++        </repository>
++        <snapshotRepository>
++            <id>gomme-snapshots</id>
++            <url>https://repo.gomme.dev/nexus/content/repositories/snapshots/</url>
++        </snapshotRepository>
++    </distributionManagement>
+ </project>
