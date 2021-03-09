@@ -69,8 +69,8 @@ function applyPatch {
     git fetch upstream >/dev/null 2>&1
     git reset --hard upstream/upstream
     echo "  Applying patches to $target..."
-    #git am --abort >/dev/null 2>&1
-    #git am --3way --ignore-whitespace "$basedir/patches/$patch_folder/"*.patch
+    git am --abort >/dev/null 2>&1
+    git am --3way --ignore-whitespace "$basedir/patches/$patch_folder/"*.patch
     if [ "$?" != "0" ]; then
         echo "  Something did not apply cleanly to $target."
         echo "  Please review above details and finish the apply then"
