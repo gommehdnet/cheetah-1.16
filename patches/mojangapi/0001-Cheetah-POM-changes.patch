@@ -5,7 +5,7 @@ Subject: [PATCH] Cheetah POM changes
 
 
 diff --git a/pom.xml b/pom.xml
-index 7712a8723cddb59829a5181f54098d0bb4083f6e..f99c93c8510908e083e34e2c02f460cbff0e81fb 100644
+index 7712a8723cddb59829a5181f54098d0bb4083f6e..0bf2e905ceb659e041d6cc8af9b784b552411f83 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -3,17 +3,16 @@
@@ -21,9 +21,8 @@ index 7712a8723cddb59829a5181f54098d0bb4083f6e..f99c93c8510908e083e34e2c02f460cb
  
 -    <groupId>com.destroystokyo.paper</groupId>
 -    <artifactId>paper-mojangapi</artifactId>
--    <version>1.16.5-R0.1-SNAPSHOT</version>
 +    <artifactId>cheetah-mojangapi</artifactId>
-+    <version>1.16.5-R1.0.0-SNAPSHOT</version>
+     <version>1.16.5-R0.1-SNAPSHOT</version>
      <packaging>jar</packaging>
  
 -    <name>Paper-MojangAPI</name>
