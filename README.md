@@ -15,7 +15,7 @@ We do not offer
 * `./cheetah patch`
 
 ### How to build
-Simply run `mvn clean install` from the root directory. After this, you will find 
+Simply run `mvn clean install` from the root directory. After this, you will find the bundled jar file in Cheetah-Server/target.
 ### Creating a patch
 
 First, patch the project as described above. Then, edit the server source code in the respective subdirectory (e.g. Paper-Server, Paper-Api).
