@@ -1,0 +1,19 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: lukas81298 <lukas81298@gommehd.net>
+Date: Wed, 21 Apr 2021 15:13:28 +0200
+Subject: [PATCH] updated artifact name
+
+
+diff --git a/pom.xml b/pom.xml
+index 655a724b1fda189413d46309a7b9514681a383e1..b7e8a6e5c2713fba4fabcaaa7bdd8e73bd563f90 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -173,7 +173,7 @@
+ 
+     <!-- This builds a completely 'ready to start' jar with all dependencies inside -->
+     <build>
+-        <finalName>paper-${minecraft.version}</finalName>
++        <finalName>cheetah-${minecraft.version}</finalName>
+         <defaultGoal>clean install</defaultGoal> <!-- Paper -->
+         <plugins>
+             <plugin>
