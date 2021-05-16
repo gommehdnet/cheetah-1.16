@@ -1,0 +1,47 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Pierre Maurice Schwang <mail@pschwang.eu>
+Date: Sun, 16 May 2021 22:53:41 +0200
+Subject: [PATCH] Disable legacy support by config
+
+
+diff --git a/src/main/java/com/destroystokyo/paper/PaperConfig.java b/src/main/java/com/destroystokyo/paper/PaperConfig.java
+index fffbb6320f397c9c90484cc64d0072ed3d0a9750..3240501325170628c9622d7fc0852c59380181c8 100644
+--- a/src/main/java/com/destroystokyo/paper/PaperConfig.java
++++ b/src/main/java/com/destroystokyo/paper/PaperConfig.java
+@@ -479,9 +479,14 @@ public class PaperConfig {
+     private static void fixEntityPositionDesync() {
+         fixEntityPositionDesync = getBoolean("settings.fix-entity-position-desync", fixEntityPositionDesync);
+ 	}
+-	
++
+     public static boolean hidePlayersIpsInLogs = false;
+     private static void playerIpsInLog() {
+         hidePlayersIpsInLogs = getBoolean("settings.hide-player-ips-in-logs", false);
+     }
++
++    public static boolean skipLegacyCheck = false;
++    private static void skipLegacyCheck() {
++        skipLegacyCheck = getBoolean("settings.skip-legacy-check", false);
++    }
+ }
+diff --git a/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java b/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java
+index 00e53d577b1dcaccb409e62d35165ee015de9330..08492b354d3eca7935b6d4e3716b09d9122cb835 100644
+--- a/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java
++++ b/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java
+@@ -1,5 +1,6 @@
+ package org.bukkit.craftbukkit.util;
+ 
++import com.destroystokyo.paper.PaperConfig;
+ import com.google.common.base.Charsets;
+ import com.google.common.base.Preconditions;
+ import com.google.common.collect.Maps;
+@@ -331,6 +332,9 @@ public final class CraftMagicNumbers implements UnsafeValues {
+ 
+     @Override
+     public void checkSupported(PluginDescriptionFile pdf) throws InvalidPluginException {
++        if (PaperConfig.skipLegacyCheck) {
++            return;
++        }
+         String minimumVersion = MinecraftServer.getServer().server.minimumAPI;
+         int minimumIndex = SUPPORTED_API.indexOf(minimumVersion);
+ 
