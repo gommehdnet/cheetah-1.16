@@ -1,0 +1,20 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: lukas81298 <lukas81298@gommehd.net>
+Date: Thu, 17 Jun 2021 17:31:50 +0200
+Subject: [PATCH] fixed respawn bug
+
+Signed-off-by: lukas81298 <lukas81298@gommehd.net>
+
+diff --git a/src/main/java/net/minecraft/server/EntityPlayer.java b/src/main/java/net/minecraft/server/EntityPlayer.java
+index d51925612bc3d37164a8e821833ef1721b6e6976..b4c5dc02fd52807344ab972afa6519adbcc5168a 100644
+--- a/src/main/java/net/minecraft/server/EntityPlayer.java
++++ b/src/main/java/net/minecraft/server/EntityPlayer.java
+@@ -760,6 +760,8 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+         this.extinguish();
+         this.setFlag(0, false);
+         this.getCombatTracker().g();
++        this.dead = true;
++        this.setHealth(0F);
+     }
+ 
+     private void eW() {
