@@ -1,0 +1,40 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: lukas81298 <lukas81298@gommehd.net>
+Date: Wed, 15 Dec 2021 01:00:28 +0100
+Subject: [PATCH] updated log4j
+
+
+diff --git a/pom.xml b/pom.xml
+index a03250d26e7ae473516581cfed64b2baa9de0a66..1a9d9792475d2a4eb922fe539cf19243ef4bddf2 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -66,13 +66,19 @@
+             <artifactId>log4j-core</artifactId>
+             <version>2.16.0</version>
+             <scope>compile</scope>
++        </dependency><dependency>
++            <groupId>org.apache.logging.log4j</groupId>
++            <artifactId>log4j-api</artifactId>
++            <version>2.16.0</version>
++            <scope>compile</scope>
+         </dependency>
+-        <dependency>
++        <!--<dependency>
+             <groupId>org.apache.logging.log4j</groupId>
+             <artifactId>log4j-slf4j-impl</artifactId>
+             <version>2.16.0</version>
+             <scope>runtime</scope>
+-        </dependency>
++        </dependency>-->
++        <!-- slfj impl somehow conflicts with cassandra driver -->
+         <dependency>
+             <groupId>org.apache.logging.log4j</groupId>
+             <artifactId>log4j-iostreams</artifactId>
+@@ -212,6 +218,7 @@
+                             <Specification-Title>Bukkit</Specification-Title>
+                             <Specification-Version>${api.version}</Specification-Version>
+                             <Specification-Vendor>Bukkit Team</Specification-Vendor>
++                            <Multi-Release>true</Multi-Release> <!-- required for java 11 compatability with log4j -->
+                         </manifestEntries>
+                         <manifestSections>
+                             <manifestSection>
